@@ -102,8 +102,8 @@ def select_2P_1P(trainDF):
     pandas_trainDF = ak.to_pandas(trainDF)
     trainDF_2P = pandas_trainDF.query("ljet_flavourlabel_0==0")
     trainDF_1P = pandas_trainDF.query("ljet_flavourlabel_0==1")
-    print("=== Number of 2P events\n",len(trainDF_2P))
-    print("=== Number of 1P events\n",len(trainDF_1P))
+    allgood("Number of 2P events:   "+str(len(trainDF_2P)))
+    allgood("Number of 1P events:   "+str(len(trainDF_1P)))
     DFs = [trainDF_2P,trainDF_1P]
     trainDF = pd.concat(DFs)
     return trainDF
@@ -147,7 +147,7 @@ def associate_subjets(vect_trainDF, subjets_vars, trainDF, variables):
 def plot_features(trainDF,inp_feat):
     fig, ax = plt.subplots()
     for ft in inp_feat:
-        print('Plotting feature ', ft)
+        info('Plotting feature '+ft)
         #pandas_trainDF = ak.to_pandas(trainDF)
         pandas_trainDF = trainDF
         trainDF_2P = pandas_trainDF.query("ljet_flavourlabel_0==0")
@@ -181,7 +181,8 @@ def get_feature_ranking(inp_feat,bst):
         features_map[name]=float(imp)
     features_map = dict(sorted(features_map.items(), key=lambda item:item[1],
                         reverse=True))
-    print('Features importance ', features_map)
+    allgood('Features importance\n')
+    print(features_map)
     return features_map
 
 #Calculate accuracy
@@ -191,8 +192,8 @@ def get_accuracy(bst,X_test,Y_test):
 
     accuracy = accuracy_score(Y_test, predictions)
     balanced_accuracy = balanced_accuracy_score(Y_test, predictions)
-    print("Accuracy: ", accuracy)
-    print("Balanced Accuracy: ", balanced_accuracy)
+    allgood("Accuracy: "+str(accuracy))
+    allgood("Balanced Accuracy: "+str(balanced_accuracy))
     return 0
 
 #Performance evaluation
@@ -297,6 +298,22 @@ def get_class_probabilities_unlab(bst, inp_feat, variables, large_jet_vars):
     plt.xlabel('Two prong probability')
     plt.savefig('model_figs/unlabeled_prob.png')
     return 0
+
+
+# ===========================================================
+#  Colours to throw scary messages on screen
+# ===========================================================
+class bcolors:
+    INFO = '\033[95m' #PURPLE
+    OK = '\033[92m' #GREEN
+    WARNING = '\033[93m' #YELLOW
+    FAIL = '\033[91m' #RED
+    RESET = '\033[0m' #RESET COLOR
+
+def warn(message): print(bcolors.WARNING+"=== "+message+" ==="+bcolors.RESET)
+def fail(message): print(bcolors.FAIL+"=== "+message+" ==="+bcolors.RESET)
+def allgood(message): print(bcolors.OK+"=== "+message+" ==="+bcolors.RESET)
+def info(message): print(bcolors.INFO+"=== "+message+" ==="+bcolors.RESET)
 
 #main
 if __name__ == '__main__':

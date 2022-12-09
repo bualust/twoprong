@@ -91,19 +91,6 @@ def get_file(file, variables,large_jet_vars):
 
     return trainDF
 
-#fix variables with NaN values
-def fixNaN(trainDF, num_feat):
-
-    for feat_name in num_feat:
-        new_values = []
-        for values in trainDF[feat_name]:
-            if math.isnan(values) :
-                new_values.append(-99)
-            else: new_values.append(values)
-        trainDF[feat_name] = new_values
-
-    return trainDF
-
 def convert_label(trainDF):
 
     new_label = []

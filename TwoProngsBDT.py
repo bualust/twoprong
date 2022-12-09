@@ -44,11 +44,14 @@ def main():
                    max_depth=3)#, early_stopping_rounds=10)
 
 
-    #split labeled sample in train and test
-    X, X_test, Y, Y_test = train_test_split(trainDF[inp_feat],
+    #split labeled sample in train and test1 samples
+    X, X_test1, Y, Y_test1 = train_test_split(trainDF[inp_feat],
                                             trainDF["ljet_flavourlabel_0"],
-                                            test_size=0.05, random_state=10)
+                                            test_size=0.3, random_state=10)
 
+    #split test1 sample into test and validation samples
+    X_val,X_test,Y_val,Y_test = train_test_split(X_test1,Y_test1,
+                                            test_size=0.5, random_state=10)
     eval_set = [(X,Y),(X_test, Y_test)]
     bst.fit(X,Y,eval_set=eval_set,verbose=False)
     bst.save_model('twoprong.json')
@@ -60,8 +63,8 @@ def main():
     allgood("Cross validation accuracy: "+str(result.mean())+" +- "+str(result.std()))
 
     get_feature_ranking(inp_feat,bst)
-    get_accuracy(bst,X_test,Y_test)
-    get_perf_plots(bst,X,Y,X_test, Y_test)
+    get_accuracy(bst,X_val,Y_val)
+    get_perf_plots(bst,X,Y,X_val, Y_val)
     get_class_probabilities_lab(bst, trainDF, inp_feat)
     get_class_probabilities_unlab(bst, inp_feat, variables,large_jet_vars)
 

@@ -5,22 +5,17 @@ import pandas as pd
 import awkward as ak
 import matplotlib.pyplot as plt
 import sklearn.metrics as sklm
-import category_encoders as ce
 from sklearn import preprocessing
-from sklearn.metrics import auc
-from sklearn.metrics import roc_curve
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import balanced_accuracy_score
-from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import auc,roc_curve
+from sklearn.metrics import accuracy_score,balanced_accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 from xgboost import XGBClassifier
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import KFold
 
 def main():
 
-    LJVAR = ["ljet_tau21","ljet_tau32","ljet_Split12","ljet_Split23",
-             "ljet_flavourlabel","ljet_Split34","ljet_ECF1"]
-    VARS = LJVAR
     large_jet_vars = ["ljet_tau21","ljet_tau32","ljet_Split12","ljet_Split23",
                        "ljet_flavourlabel","ljet_Split34","ljet_ECF1"]
     #                   "ljetGA_trackjets_indeces"]
@@ -30,10 +25,10 @@ def main():
 
     #training data
     train_file = "../800031.root"
-    trainDF = get_file(train_file, variables, large_jet_vars)
+    trainDF,new_variables = get_file(train_file, variables, large_jet_vars)
 
     #list of variables to train on
-    inp_feat = input_features(variables)
+    inp_feat = input_features(new_variables)
     #inp_feat.append("dphi_subjets")
     #inp_feat.append("deta_subjets")
 
@@ -58,7 +53,7 @@ def main():
     get_accuracy(bst,X_test,Y_test)
     get_perf_plots(bst,X,Y,X_test, Y_test)
     get_class_probabilities_lab(bst, trainDF, inp_feat)
- #   get_class_probabilities_unlab(bst, inp_feat, VARS, LJVAR)
+    get_class_probabilities_unlab(bst, inp_feat, variables,large_jet_vars)
 
 
 def get_file(file, variables,large_jet_vars):
@@ -71,8 +66,9 @@ def get_file(file, variables,large_jet_vars):
 
     #dataframe with flattened vectors
     trainDF = {}
+    new_variables = []
     for var in large_jet_vars:
-        flat_vector(vect_trainDF, 0, var, trainDF, variables, 0)
+        flat_vector(vect_trainDF, 0, var, trainDF, variables, 0, new_variables)
     #associate_subjets(vect_trainDF, subjets_vars, trainDF, variables)
 
     convert_label(trainDF)
@@ -83,7 +79,7 @@ def get_file(file, variables,large_jet_vars):
     #trainDF = trainDF.drop("ljetGA_trackjets_indeces_0",axis=1)
     #trainDF = add_features(trainDF)
 
-    return trainDF
+    return trainDF,new_variables
 
 def convert_label(trainDF):
 
@@ -116,14 +112,13 @@ def input_features(variables):
     return input_feat
 
 #flatten vectors variables
-def flat_vector(vect_data_frame, index, name, data_frame, variables, index_name):
+def flat_vector(vect_data_frame, index, name, data_frame,
+                variables, index_name, new_variable):
     var_arr = vect_data_frame[name][:,index]
     var_arr = ak.Array(var_arr)
     new_name = name+"_"+str(index_name)
     data_frame[new_name] = var_arr
-    for i in range(len(variables)):
-        if variables[i]==name: variables[i]=new_name; break
-    if(index_name!=0): variables.append(new_name)
+    new_variable.append(new_name)
 
 def associate_subjets(vect_trainDF, subjets_vars, trainDF, variables):
     indices = [0,1]
@@ -278,7 +273,7 @@ def get_class_probabilities_lab(bst, trainDF, inp_feat):
 def get_class_probabilities_unlab(bst, inp_feat, variables, large_jet_vars):
 
     train_file = "../364703.root"
-    testDF = get_file(train_file, variables, large_jet_vars)
+    testDF,_ = get_file(train_file, variables, large_jet_vars)
 
     y_pred = bst.predict(testDF[inp_feat])
     predictions = [round(value) for value in y_pred]

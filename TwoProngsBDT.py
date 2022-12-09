@@ -37,8 +37,12 @@ def main():
 
     #fit model
     bst = XGBClassifier()
+    #bst.set_params(eval_metric=['error', 'logloss','auc'],
+    #               max_depth=3, early_stopping_rounds=10)
+
     bst.set_params(eval_metric=['error', 'logloss','auc'],
-                   max_depth=3, early_stopping_rounds=10)
+                   max_depth=3)#, early_stopping_rounds=10)
+
 
     #split labeled sample in train and test
     X, X_test, Y, Y_test = train_test_split(trainDF[inp_feat],
@@ -48,6 +52,12 @@ def main():
     eval_set = [(X,Y),(X_test, Y_test)]
     bst.fit(X,Y,eval_set=eval_set,verbose=False)
     bst.save_model('twoprong.json')
+
+    kf = KFold(n_splits=2)
+    number_of_splits = kf.get_n_splits(trainDF)
+
+    result = cross_val_score(bst, trainDF[inp_feat], trainDF["ljet_flavourlabel_0"], cv=kf, error_score='raise')
+    allgood("Cross validation accuracy: "+str(result.mean())+" +- "+str(result.std()))
 
     get_feature_ranking(inp_feat,bst)
     get_accuracy(bst,X_test,Y_test)

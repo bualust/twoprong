@@ -10,6 +10,7 @@ from sklearn import preprocessing
 from sklearn.metrics import auc
 from sklearn.metrics import roc_curve
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import balanced_accuracy_score
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
@@ -31,8 +32,6 @@ def main():
     train_file = "../800031.root"
     trainDF = get_file(train_file, variables, large_jet_vars)
 
-    print("large_jet_vars\n",large_jet_vars)
-    print("variables\n",variables)
     #list of variables to train on
     inp_feat = input_features(variables)
     #inp_feat.append("dphi_subjets")
@@ -40,9 +39,6 @@ def main():
 
     #plot features bf training
     plot_features(trainDF,inp_feat)
-
-    print("Training over input features\n",inp_feat)
-    print(trainDF)
 
     #fit model
     bst = XGBClassifier()
@@ -62,8 +58,7 @@ def main():
     get_accuracy(bst,X_test,Y_test)
     get_perf_plots(bst,X,Y,X_test, Y_test)
     get_class_probabilities_lab(bst, trainDF, inp_feat)
-    get_class_probabilities_unlab(bst, inp_feat, VARS, LJVAR)
-
+ #   get_class_probabilities_unlab(bst, inp_feat, VARS, LJVAR)
 
 
 def get_file(file, variables,large_jet_vars):
@@ -151,7 +146,6 @@ def associate_subjets(vect_trainDF, subjets_vars, trainDF, variables):
 #plot all input features
 def plot_features(trainDF,inp_feat):
     fig, ax = plt.subplots()
-    print('Inside plotting funct\n',trainDF)
     for ft in inp_feat:
         print('Plotting feature ', ft)
         #pandas_trainDF = ak.to_pandas(trainDF)
@@ -196,7 +190,9 @@ def get_accuracy(bst,X_test,Y_test):
     predictions = [round(value) for value in y_pred]
 
     accuracy = accuracy_score(Y_test, predictions)
-    print("Accuracy: %.2f%%" % (accuracy * 100.0))
+    balanced_accuracy = balanced_accuracy_score(Y_test, predictions)
+    print("Accuracy: ", accuracy)
+    print("Balanced Accuracy: ", balanced_accuracy)
     return 0
 
 #Performance evaluation
@@ -282,7 +278,6 @@ def get_class_probabilities_unlab(bst, inp_feat, variables, large_jet_vars):
 
     train_file = "../364703.root"
     testDF = get_file(train_file, variables, large_jet_vars)
-    print("Test dataframe\n", testDF)
 
     y_pred = bst.predict(testDF[inp_feat])
     predictions = [round(value) for value in y_pred]

@@ -35,8 +35,7 @@ def main():
     #bst.set_params(eval_metric=['error', 'logloss','auc'],
     #               max_depth=3, early_stopping_rounds=10)
 
-    bst.set_params(eval_metric=['error', 'logloss','auc'],
-                   max_depth=3)#, early_stopping_rounds=10)
+    bst.set_params(eval_metric=['error', 'logloss','auc'], max_depth=3)
 
 
     #split labeled sample in train and test1 samples
@@ -47,11 +46,12 @@ def main():
     #split test1 sample into test and validation samples
     X_val,X_test,Y_val,Y_test = train_test_split(X_test1,Y_test1,
                                             test_size=0.5, random_state=10)
+
     eval_set = [(X,Y),(X_test, Y_test)]
     bst.fit(X,Y,eval_set=eval_set,verbose=False)
     bst.save_model('twoprong.json')
 
-    kf = KFold(n_splits=2)
+    kf = KFold(n_splits=5)
     number_of_splits = kf.get_n_splits(trainDF)
 
     result = cross_val_score(bst, trainDF[inp_feat], trainDF["ljet_flavourlabel_0"], cv=kf, error_score='raise')

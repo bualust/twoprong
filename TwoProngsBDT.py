@@ -189,8 +189,12 @@ def get_feature_ranking(inp_feat,bst):
         features_map[name]=float(imp)
     features_map = dict(sorted(features_map.items(), key=lambda item:item[1],
                         reverse=True))
-    allgood('Features importance\n')
-    print(features_map)
+    allgood('Features importance plot\n')
+    fig, ax = plt.subplots()
+    plt.title('Features importance')
+    plt.bar(range(len(features_map)), list(features_map.values()), align='center')
+    plt.xticks(range(len(features_map)), list(features_map.keys()))
+    plt.savefig('model_figs/importance.png')
     return features_map
 
 #Calculate accuracy

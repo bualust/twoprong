@@ -81,7 +81,6 @@ def get_file(file, variables,large_jet_vars):
     #associate_subjets(vect_trainDF, subjets_vars, trainDF, variables)
 
     convert_label(trainDF)
-    #set_dummy_noentry(trainDF,variables)
 
     trainDF = select_2P_1P(trainDF)
     trainDF = pd.DataFrame(trainDF)
@@ -102,17 +101,6 @@ def convert_label(trainDF):
         else: new_label.append(-99)
     new_label = ak.Array(new_label)
     trainDF["ljet_flavourlabel_0"] = new_label
-
-def set_dummy_noentry(trainDF, variables):
-
-    for var in variables:
-        if "tjet" not in var: continue
-        new_label = []
-        for ev in trainDF[var]:
-            if math.isnan(ev): new_label.append(-99)
-            else: new_label.append(ev)
-        new_label = ak.Array(new_label)
-        trainDF[var] = new_label
 
 def select_2P_1P(trainDF):
 

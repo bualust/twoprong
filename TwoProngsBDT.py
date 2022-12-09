@@ -18,10 +18,7 @@ def main():
 
     large_jet_vars = ["ljet_tau21","ljet_tau32","ljet_Split12","ljet_Split23",
                        "ljet_flavourlabel","ljet_Split34","ljet_ECF1"]
-    #                   "ljetGA_trackjets_indeces"]
-    #subjets_vars = ["tjet_pt","tjet_eta","tjet_phi"]
-
-    variables = large_jet_vars #+subjets_vars
+    variables = large_jet_vars
 
     #training data
     train_file = "../800031.root"
@@ -29,8 +26,6 @@ def main():
 
     #list of variables to train on
     inp_feat = input_features(new_variables)
-    #inp_feat.append("dphi_subjets")
-    #inp_feat.append("deta_subjets")
 
     #plot features bf training
     plot_features(trainDF,inp_feat)
@@ -82,15 +77,12 @@ def get_file(file, variables,large_jet_vars):
     new_variables = []
     for var in large_jet_vars:
         flat_vector(vect_trainDF, 0, var, trainDF, variables, 0, new_variables)
-    #associate_subjets(vect_trainDF, subjets_vars, trainDF, variables)
 
     convert_label(trainDF)
 
     trainDF = select_2P_1P(trainDF)
     trainDF = pd.DataFrame(trainDF)
     trainDF = shuffle(trainDF)
-    #trainDF = trainDF.drop("ljetGA_trackjets_indeces_0",axis=1)
-    #trainDF = add_features(trainDF)
 
     return trainDF,new_variables
 
@@ -175,12 +167,6 @@ def plot_features(trainDF,inp_feat):
         plt.xlabel(ft)
         plt.savefig('model_figs/'+ft+'.png')
         plt.cla()
-
-#derive secondary features
-def add_features(trainDF):
-    trainDF['dphi_subjets']=trainDF['tjet_phi_0']-trainDF['tjet_phi_1']
-    trainDF['deta_subjets']=trainDF['tjet_eta_0']-trainDF['tjet_eta_1']
-    return trainDF
 
 #features importance ranking
 def get_feature_ranking(inp_feat,bst):

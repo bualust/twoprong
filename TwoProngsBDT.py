@@ -5,6 +5,7 @@ import pandas as pd
 import awkward as ak
 import matplotlib.pyplot as plt
 import sklearn.metrics as sklm
+import ROOT as root
 from sklearn import preprocessing
 from sklearn.metrics import auc,roc_curve
 from sklearn.metrics import accuracy_score,balanced_accuracy_score
@@ -61,7 +62,8 @@ def main():
     get_accuracy(bst,X_val,Y_val)
     get_perf_plots(bst,X,Y,X_val, Y_val)
     get_class_probabilities_lab(bst, trainDF, inp_feat)
-    get_class_probabilities_unlab(bst, inp_feat, variables,large_jet_vars)
+    #get_class_probabilities_unlab(bst, inp_feat, variables,large_jet_vars)
+    apply_BDT_score(bst, inp_feat, variables,large_jet_vars)
 
 
 def get_file(file, variables,large_jet_vars):
@@ -275,11 +277,11 @@ def get_class_probabilities_lab(bst, trainDF, inp_feat):
 ##unlabeled data
 def get_class_probabilities_unlab(bst, inp_feat, variables, large_jet_vars):
 
-    train_file = "../364703.root"
+    #train_file = "../364703.root"
+    train_file = "../800031.root"
     testDF,_ = get_file(train_file, variables, large_jet_vars)
 
     y_pred = bst.predict(testDF[inp_feat])
-    predictions = [round(value) for value in y_pred]
     test_proba = bst.predict_proba(testDF[inp_feat])
 
     fig, ax = plt.subplots()
@@ -295,6 +297,43 @@ def get_class_probabilities_unlab(bst, inp_feat, variables, large_jet_vars):
     ax.legend()
     plt.xlabel('Two prong probability')
     plt.savefig('model_figs/unlabeled_prob.png')
+
+    return 0
+
+def apply_BDT_score(bst, inp_feat, variables, large_jet_vars):
+
+    file_name = "800031.root"
+    #file_name = "364703.root"
+    input_file = uproot.concatenate("../"+file_name+":nominal",variables,
+                                    allow_missing=True)
+    file = root.TFile.Open("tree_tester_"+file_name, "RECREATE")
+    tree = root.TTree("nominal","nominal")
+    bdt_score = []
+    tree.Branch('bdt_score', 'bdt_score', 'bdt_score/D')
+    for ev in input_file:
+        lj_score = []
+        data = {}
+        for t21,t32,s12,s23,s34,ecf1 in zip(ev["ljet_tau21"],
+                                            ev["ljet_tau32"],
+                                            ev["ljet_Split12"],
+                                            ev["ljet_Split23"],
+                                            ev["ljet_Split34"],
+                                            ev["ljet_ECF1"]):
+            data["ljet_tau21_0"] = t21
+            data["ljet_tau32_0"] = t32
+            data["ljet_Split12_0"] = s12
+            data["ljet_Split23_0"] = s23
+            data["ljet_Split34_0"] = s34
+            data["ljet_ECF1_0"] = ecf1
+            data = ak.to_pandas(data)
+            if data.shape[1]!=6: continue
+            test_proba = bst.predict_proba(data)
+            print(test_proba)
+            lj_score.append(test_proba[:,1])
+        bdt_score.append(lj_score)
+        tree.Fill()
+    tree.Write()
+
     return 0
 
 

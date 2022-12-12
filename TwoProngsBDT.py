@@ -328,7 +328,6 @@ def apply_BDT_score(bst, inp_feat, variables, large_jet_vars):
             data = ak.to_pandas(data)
             if data.shape[1]!=6: continue
             test_proba = bst.predict_proba(data)
-            print(test_proba)
             lj_score.append(test_proba[:,1])
         bdt_score.append(lj_score)
         tree.Fill()

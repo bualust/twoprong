@@ -266,8 +266,8 @@ def get_class_probabilities_lab(bst, trainDF, inp_feat):
     while i<number_of_bins:
         bins.append(i*edges)
         i=i+1
-    plt.hist(pred_proba_2P[:,1], histtype='step', label="Two prong",bins=bins)
-    plt.hist(pred_proba_1P[:,1], histtype='step', label="One prong",bins=bins)
+    plt.hist(pred_proba_2P[:,0], histtype='step', label="Two prong",bins=bins)
+    plt.hist(pred_proba_1P[:,0], histtype='step', label="One prong",bins=bins)
     ax.legend()
     plt.xlabel('Two prong probability')
     plt.savefig('model_figs/labeled_prob.png')
@@ -292,7 +292,7 @@ def get_class_probabilities_unlab(bst, inp_feat, variables, large_jet_vars):
     while i<number_of_bins:
         bins.append(i*edges)
         i=i+1
-    plt.hist(test_proba[:,1], histtype='step', label="Unlabeled",bins=bins)
+    plt.hist(test_proba[:,0], histtype='step', label="Unlabeled",bins=bins)
     ax.legend()
     plt.xlabel('Two prong probability')
     plt.savefig('model_figs/unlabeled_prob.png')
